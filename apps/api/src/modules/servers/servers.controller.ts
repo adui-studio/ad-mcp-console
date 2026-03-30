@@ -7,7 +7,7 @@ import { ServerResponseDto } from './dto/server-response.dto.js';
 import { UpdateServerDto } from './dto/update-server.dto.js';
 import { ServersService } from './servers.service.js';
 
-@ApiTags('servers')
+@ApiTags('服务器管理 / Servers')
 @Controller('servers')
 export class ServersController {
   constructor(private readonly serversService: ServersService) {}

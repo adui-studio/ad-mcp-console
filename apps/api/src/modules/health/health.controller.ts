@@ -7,7 +7,7 @@ import {
   HealthCheckService,
   MemoryHealthIndicator,
 } from '@nestjs/terminus';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { I18nService } from 'nestjs-i18n';
 import { PrismaHealthIndicator } from './indicators/prisma.health.js';
 import { Public } from '../../common/http/decorators/public.decorator.js';
@@ -33,7 +33,72 @@ export class HealthController {
       '返回应用、数据库、内存和磁盘健康状态 / Returns application, database, memory, and disk health status',
   })
   @ApiOkResponse({
-    description: '健康检查结果 / Health check result',
+    description: '健康检查成功 / Health check succeeded',
+    schema: {
+      example: {
+        status: 'ok',
+        info: {
+          database: {
+            status: 'up',
+          },
+          memory_heap: {
+            status: 'up',
+          },
+          memory_rss: {
+            status: 'up',
+          },
+          storage: {
+            status: 'up',
+          },
+          message: '服务正常 / Service is healthy',
+        },
+        error: {},
+        details: {
+          database: {
+            status: 'up',
+          },
+          memory_heap: {
+            status: 'up',
+          },
+          memory_rss: {
+            status: 'up',
+          },
+          storage: {
+            status: 'up',
+          },
+          message: '服务正常 / Service is healthy',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 503,
+    description: '健康检查失败 / Health check failed',
+    schema: {
+      example: {
+        status: 'error',
+        info: {
+          database: {
+            status: 'up',
+          },
+        },
+        error: {
+          storage: {
+            status: 'down',
+            message: 'ENOSPC: no space left on device',
+          },
+        },
+        details: {
+          database: {
+            status: 'up',
+          },
+          storage: {
+            status: 'down',
+            message: 'ENOSPC: no space left on device',
+          },
+        },
+      },
+    },
   })
   async check(): Promise<HealthCheckResult> {
     const heapMb = this.configService.get<number>('HEALTH_MEMORY_HEAP_MB', 256);
