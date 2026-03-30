@@ -1,27 +1,28 @@
-import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
+import { SwaggerModule } from '@nestjs/swagger';
+
 import { AppModule } from './app.module.js';
 import { AppLoggerService } from './common/logger/app-logger.service.js';
-import { RequestContextService } from './common/request/request-context.service.js';
-import { AllExceptionsFilter } from './common/http/filters/all-exceptions.filter.js';
+import {
+  createSwaggerConfigEn,
+  createSwaggerConfigZh,
+  getSwaggerDocumentOptions,
+} from './common/swagger/swagger.factory.js';
 
-async function bootstrap(): Promise<void> {
+async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
   });
 
-  const configService = app.get(ConfigService);
   const logger = app.get(AppLoggerService);
-  const requestContext = app.get(RequestContextService);
-
   app.useLogger(logger);
-  app.enableCors();
-  app.enableShutdownHooks();
 
-  const apiPrefix = configService.get<string>('API_PREFIX', 'api');
+  const configService = app.get(ConfigService);
+
   const port = configService.get<number>('PORT', 3001);
+  const apiPrefix = configService.get<string>('API_PREFIX', 'api');
 
   app.setGlobalPrefix(apiPrefix);
 
@@ -30,36 +31,62 @@ async function bootstrap(): Promise<void> {
       whitelist: true,
       transform: true,
       forbidNonWhitelisted: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
+      stopAtFirstError: true,
     }),
   );
 
-  app.useGlobalFilters(new AllExceptionsFilter(logger, requestContext));
+  const swaggerDocumentOptions = getSwaggerDocumentOptions();
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('MCP Console API')
-    .setDescription('REST API for MCP Console')
-    .setVersion('0.0.0')
-    .build();
+  const zhDocument = SwaggerModule.createDocument(
+    app,
+    createSwaggerConfigZh(),
+    swaggerDocumentOptions,
+  );
 
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  const enDocument = SwaggerModule.createDocument(
+    app,
+    createSwaggerConfigEn(),
+    swaggerDocumentOptions,
+  );
 
-  SwaggerModule.setup(`${apiPrefix}/docs`, app, document, {
-    jsonDocumentUrl: `${apiPrefix}/docs/json`,
+  SwaggerModule.setup('docs', app, zhDocument, {
+    explorer: true,
+    customSiteTitle: 'MCP Console Docs',
+    jsonDocumentUrl: 'docs/json',
+    yamlDocumentUrl: 'docs/yaml',
+    swaggerOptions: {
+      persistAuthorization: true,
+      displayRequestDuration: true,
+      docExpansion: 'list',
+      filter: true,
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
+      tryItOutEnabled: true,
+    },
+  });
+
+  SwaggerModule.setup('docs-en', app, enDocument, {
+    explorer: true,
+    customSiteTitle: 'MCP Console Docs (EN)',
+    jsonDocumentUrl: 'docs-en/json',
+    yamlDocumentUrl: 'docs-en/yaml',
+    swaggerOptions: {
+      persistAuthorization: true,
+      displayRequestDuration: true,
+      docExpansion: 'list',
+      filter: true,
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
+      tryItOutEnabled: true,
+    },
   });
 
   await app.listen(port);
 
-  logger.log({
-    type: 'app_bootstrapped',
-    port,
-    apiPrefix,
-    docsUrl: `http://localhost:${port}/${apiPrefix}/docs`,
-    env: configService.get<string>('NODE_ENV', 'development'),
-    fallbackLanguage: configService.get<string>('I18N_FALLBACK_LANGUAGE', 'zh'),
-  });
+  Logger.log(`Server running at http://localhost:${port}`, 'Bootstrap');
+  Logger.log(`Swagger (ZH): http://localhost:${port}/docs`, 'Bootstrap');
+  Logger.log(`Swagger (EN): http://localhost:${port}/docs-en`, 'Bootstrap');
+  Logger.log(`API Prefix: /${apiPrefix}`, 'Bootstrap');
 }
 
 void bootstrap();

@@ -28,11 +28,12 @@ export class HealthController {
   @Public()
   @HealthCheck()
   @ApiOperation({
-    summary: 'Health check',
-    description: 'Returns application, database, memory, and disk health status',
+    summary: '健康检查 / Health check',
+    description:
+      '返回应用、数据库、内存和磁盘健康状态 / Returns application, database, memory, and disk health status',
   })
   @ApiOkResponse({
-    description: 'Health check result',
+    description: '健康检查结果 / Health check result',
   })
   async check(): Promise<HealthCheckResult> {
     const heapMb = this.configService.get<number>('HEALTH_MEMORY_HEAP_MB', 256);

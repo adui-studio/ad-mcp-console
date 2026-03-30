@@ -22,6 +22,7 @@ import { RequestContextMiddleware } from './common/request/request-context.middl
 import { RequestContextModule } from './common/request/request-context.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { PrismaModule } from './modules/prisma/prisma.module.js';
+import { ServersModule } from './modules/servers/servers.module.js';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { PrismaModule } from './modules/prisma/prisma.module.js';
     PrismaModule,
     AppHttpClientModule,
     HealthModule,
+    ServersModule,
   ],
   providers: [
     {
