@@ -31,8 +31,8 @@ export * from "./enums.js"
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more Healthchecks
- * const healthchecks = await prisma.healthcheck.findMany()
+ * // Fetch zero or more Servers
+ * const servers = await prisma.server.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -42,7 +42,42 @@ export type PrismaClient<LogOpts extends Prisma.LogLevel = never, OmitOpts exten
 export { Prisma }
 
 /**
- * Model Healthcheck
+ * Model Server
  * 
  */
-export type Healthcheck = Prisma.HealthcheckModel
+export type Server = Prisma.ServerModel
+/**
+ * Model CapabilitySnapshot
+ * 
+ */
+export type CapabilitySnapshot = Prisma.CapabilitySnapshotModel
+/**
+ * Model ToolPolicy
+ * 
+ */
+export type ToolPolicy = Prisma.ToolPolicyModel
+/**
+ * Model Recipe
+ * 
+ */
+export type Recipe = Prisma.RecipeModel
+/**
+ * Model Run
+ * 
+ */
+export type Run = Prisma.RunModel
+/**
+ * Model RunEvent
+ * 
+ */
+export type RunEvent = Prisma.RunEventModel
+/**
+ * Model ShareLink
+ * 
+ */
+export type ShareLink = Prisma.ShareLinkModel
+/**
+ * Model AuditLog
+ * 
+ */
+export type AuditLog = Prisma.AuditLogModel

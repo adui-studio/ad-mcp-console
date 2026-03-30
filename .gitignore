@@ -9,3 +9,13 @@ dist-ssr
 .cache
 server/dist
 public/dist
+
+# database
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# prisma local db
+apps/api/prisma/*.db
+apps/api/prisma/*.db-journal

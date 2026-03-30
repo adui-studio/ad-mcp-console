@@ -51,7 +51,14 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  Healthcheck: 'Healthcheck'
+  Server: 'Server',
+  CapabilitySnapshot: 'CapabilitySnapshot',
+  ToolPolicy: 'ToolPolicy',
+  Recipe: 'Recipe',
+  Run: 'Run',
+  RunEvent: 'RunEvent',
+  ShareLink: 'ShareLink',
+  AuditLog: 'AuditLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -67,12 +74,137 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
-export const HealthcheckScalarFieldEnum = {
+export const ServerScalarFieldEnum = {
   id: 'id',
-  createdAt: 'createdAt'
+  name: 'name',
+  transportType: 'transportType',
+  baseUrl: 'baseUrl',
+  command: 'command',
+  argsJson: 'argsJson',
+  envJson: 'envJson',
+  extension: 'extension',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
-export type HealthcheckScalarFieldEnum = (typeof HealthcheckScalarFieldEnum)[keyof typeof HealthcheckScalarFieldEnum]
+export type ServerScalarFieldEnum = (typeof ServerScalarFieldEnum)[keyof typeof ServerScalarFieldEnum]
+
+
+export const CapabilitySnapshotScalarFieldEnum = {
+  id: 'id',
+  serverId: 'serverId',
+  version: 'version',
+  discoveredAt: 'discoveredAt',
+  toolsCount: 'toolsCount',
+  resourcesCount: 'resourcesCount',
+  promptsCount: 'promptsCount',
+  snapshotJson: 'snapshotJson',
+  extension: 'extension',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CapabilitySnapshotScalarFieldEnum = (typeof CapabilitySnapshotScalarFieldEnum)[keyof typeof CapabilitySnapshotScalarFieldEnum]
+
+
+export const ToolPolicyScalarFieldEnum = {
+  id: 'id',
+  serverId: 'serverId',
+  toolName: 'toolName',
+  riskLevel: 'riskLevel',
+  requireConfirm: 'requireConfirm',
+  notes: 'notes',
+  extension: 'extension',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ToolPolicyScalarFieldEnum = (typeof ToolPolicyScalarFieldEnum)[keyof typeof ToolPolicyScalarFieldEnum]
+
+
+export const RecipeScalarFieldEnum = {
+  id: 'id',
+  serverId: 'serverId',
+  toolName: 'toolName',
+  name: 'name',
+  description: 'description',
+  inputJson: 'inputJson',
+  latestRunId: 'latestRunId',
+  extension: 'extension',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RecipeScalarFieldEnum = (typeof RecipeScalarFieldEnum)[keyof typeof RecipeScalarFieldEnum]
+
+
+export const RunScalarFieldEnum = {
+  id: 'id',
+  serverId: 'serverId',
+  capabilitySnapshotId: 'capabilitySnapshotId',
+  recipeId: 'recipeId',
+  toolName: 'toolName',
+  status: 'status',
+  riskLevel: 'riskLevel',
+  requestJson: 'requestJson',
+  responseJson: 'responseJson',
+  errorJson: 'errorJson',
+  durationMs: 'durationMs',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  extension: 'extension',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RunScalarFieldEnum = (typeof RunScalarFieldEnum)[keyof typeof RunScalarFieldEnum]
+
+
+export const RunEventScalarFieldEnum = {
+  id: 'id',
+  runId: 'runId',
+  eventType: 'eventType',
+  message: 'message',
+  payloadJson: 'payloadJson',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RunEventScalarFieldEnum = (typeof RunEventScalarFieldEnum)[keyof typeof RunEventScalarFieldEnum]
+
+
+export const ShareLinkScalarFieldEnum = {
+  id: 'id',
+  token: 'token',
+  targetType: 'targetType',
+  runId: 'runId',
+  recipeId: 'recipeId',
+  isRevoked: 'isRevoked',
+  expiresAt: 'expiresAt',
+  extension: 'extension',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ShareLinkScalarFieldEnum = (typeof ShareLinkScalarFieldEnum)[keyof typeof ShareLinkScalarFieldEnum]
+
+
+export const AuditLogScalarFieldEnum = {
+  id: 'id',
+  action: 'action',
+  actor: 'actor',
+  source: 'source',
+  serverId: 'serverId',
+  runId: 'runId',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  metadataJson: 'metadataJson',
+  extension: 'extension',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -81,4 +213,44 @@ export const SortOrder = {
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+} as const
+
+export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 

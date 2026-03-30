@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider     = "prisma-client"
   output       = "../src/generated/prisma"
@@ -13,7 +8,236 @@ datasource db {
   provider = "sqlite"
 }
 
-model Healthcheck {
-  id        String   @id
-  createdAt DateTime @default(now())
+enum TransportType {
+  stdio
+  streamable_http
+}
+
+enum CapabilityType {
+  tool
+  resource
+  prompt
+}
+
+enum RiskLevel {
+  low
+  medium
+  high
+}
+
+enum RunStatus {
+  queued
+  confirm_required
+  running
+  succeeded
+  failed
+  cancelled
+}
+
+enum RunEventType {
+  queued
+  started
+  confirm_required
+  completed
+  failed
+  cancelled
+  log
+}
+
+enum ShareTargetType {
+  run
+  recipe
+}
+
+enum AuditAction {
+  server_created
+  server_updated
+  server_deleted
+  capability_discovered
+  tool_policy_updated
+  run_created
+  run_rerun
+  recipe_created
+  recipe_updated
+  recipe_deleted
+  share_link_created
+  share_link_revoked
+}
+
+model Server {
+  id            String        @id @default(cuid())
+  name          String
+  transportType TransportType
+  baseUrl       String?
+  command       String?
+  argsJson      Json?
+  envJson       Json?
+  extension     Json?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  capabilitySnapshots CapabilitySnapshot[]
+  toolPolicies        ToolPolicy[]
+  recipes             Recipe[]
+  runs                Run[]
+  auditLogs           AuditLog[]
+
+  @@index([name])
+  @@index([transportType])
+}
+
+model CapabilitySnapshot {
+  id             String   @id @default(cuid())
+  serverId       String
+  version        Int
+  discoveredAt   DateTime @default(now())
+  toolsCount     Int      @default(0)
+  resourcesCount Int      @default(0)
+  promptsCount   Int      @default(0)
+  snapshotJson   Json
+  extension      Json?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  runs   Run[]
+
+  @@unique([serverId, version])
+  @@index([serverId, discoveredAt])
+}
+
+model ToolPolicy {
+  id             String    @id @default(cuid())
+  serverId       String
+  toolName       String
+  riskLevel      RiskLevel @default(low)
+  requireConfirm Boolean   @default(false)
+  notes          String?
+  extension      Json?
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@unique([serverId, toolName])
+  @@index([serverId, riskLevel])
+}
+
+model Recipe {
+  id          String  @id @default(cuid())
+  serverId    String
+  toolName    String
+  name        String
+  description String?
+  inputJson   Json
+  latestRunId String?
+  extension   Json?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  server      Server      @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  latestRun   Run?        @relation("RecipeLatestRun", fields: [latestRunId], references: [id], onDelete: SetNull)
+  runs        Run[]       @relation("RunRecipe")
+  shareLinks  ShareLink[]
+
+  @@index([serverId, toolName])
+  @@index([name])
+  @@index([latestRunId])
+}
+
+model Run {
+  id                   String               @id @default(cuid())
+  serverId             String
+  capabilitySnapshotId String?
+  recipeId             String?
+  toolName             String
+  status               RunStatus            @default(queued)
+  riskLevel            RiskLevel?
+  requestJson          Json
+  responseJson         Json?
+  errorJson            Json?
+  durationMs           Int?
+  startedAt            DateTime?
+  finishedAt           DateTime?
+  extension            Json?
+
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  server             Server              @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  capabilitySnapshot CapabilitySnapshot? @relation(fields: [capabilitySnapshotId], references: [id], onDelete: SetNull)
+  recipe             Recipe?             @relation("RunRecipe", fields: [recipeId], references: [id], onDelete: SetNull)
+  latestForRecipes   Recipe[]            @relation("RecipeLatestRun")
+  events             RunEvent[]
+  shareLinks         ShareLink[]
+  auditLogs          AuditLog[]
+
+  @@index([serverId, createdAt])
+  @@index([status, createdAt])
+  @@index([toolName, createdAt])
+  @@index([recipeId])
+}
+
+model RunEvent {
+  id          String       @id @default(cuid())
+  runId       String
+  eventType   RunEventType
+  message     String?
+  payloadJson Json?
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  run Run @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId, createdAt])
+  @@index([eventType, createdAt])
+}
+
+model ShareLink {
+  id         String          @id @default(cuid())
+  token      String          @unique
+  targetType ShareTargetType
+  runId      String?
+  recipeId   String?
+  isRevoked  Boolean         @default(false)
+  expiresAt  DateTime?
+  extension  Json?
+
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  run    Run?    @relation(fields: [runId], references: [id], onDelete: Cascade)
+  recipe Recipe? @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@index([targetType, createdAt])
+  @@index([token, isRevoked])
+}
+
+model AuditLog {
+  id           String      @id @default(cuid())
+  action       AuditAction
+  actor        String?
+  source       String?
+  serverId     String?
+  runId        String?
+  targetType   String?
+  targetId     String?
+  metadataJson Json?
+  extension    Json?
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  server Server? @relation(fields: [serverId], references: [id], onDelete: SetNull)
+  run    Run?    @relation(fields: [runId], references: [id], onDelete: SetNull)
+
+  @@index([action, createdAt])
+  @@index([serverId, createdAt])
+  @@index([runId, createdAt])
+  @@index([targetType, targetId])
 }

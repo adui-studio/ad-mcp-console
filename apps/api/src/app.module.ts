@@ -2,27 +2,26 @@ import { type MiddlewareConsumer, Module, type NestModule } from '@nestjs/common
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import {
-  I18nJsonLoader,
-  I18nModule,
   AcceptLanguageResolver,
   HeaderResolver,
+  I18nJsonLoader,
+  I18nModule,
   QueryResolver,
 } from 'nestjs-i18n';
 import { join } from 'node:path';
+
 import { validateEnv } from './common/config/env.schema.js';
-import { PrismaModule } from './modules/prisma/prisma.module.js';
 import { AppHttpClientModule } from './common/http-client/http-client.module.js';
-import { HealthModule } from './modules/health/health.module.js';
-import { RequestContextService } from './common/request/request-context.service.js';
-import { AppLoggerService } from './common/logger/app-logger.service.js';
 import { HttpGuard } from './common/http/guards/http.guard.js';
 import { LoggingInterceptor } from './common/http/interceptors/logging.interceptor.js';
 import { ResponseInterceptor } from './common/http/interceptors/response.interceptor.js';
 import { TimeoutInterceptor } from './common/http/interceptors/timeout.interceptor.js';
-import { RequestContextMiddleware } from './common/request/request-context.middleware.js';
-import { PinoHttpMiddleware } from './common/logger/pino-http.middleware.js';
 import { LoggerModule } from './common/logger/logger.module.js';
+import { PinoHttpMiddleware } from './common/logger/pino-http.middleware.js';
+import { RequestContextMiddleware } from './common/request/request-context.middleware.js';
 import { RequestContextModule } from './common/request/request-context.module.js';
+import { HealthModule } from './modules/health/health.module.js';
+import { PrismaModule } from './modules/prisma/prisma.module.js';
 
 @Module({
   imports: [
@@ -54,8 +53,6 @@ import { RequestContextModule } from './common/request/request-context.module.js
     HealthModule,
   ],
   providers: [
-    RequestContextService,
-    AppLoggerService,
     {
       provide: APP_GUARD,
       useClass: HttpGuard,
@@ -70,7 +67,9 @@ import { RequestContextModule } from './common/request/request-context.module.js
     },
     {
       provide: APP_INTERCEPTOR,
-      useFactory: () => new TimeoutInterceptor(15_000),
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) =>
+        new TimeoutInterceptor(configService.get<number>('REQUEST_TIMEOUT_MS', 15000)),
     },
   ],
 })

@@ -9,7 +9,78 @@
 * 🟢 You can import this file directly.
 */
 
+export const TransportType = {
+  stdio: 'stdio',
+  streamable_http: 'streamable_http'
+} as const
+
+export type TransportType = (typeof TransportType)[keyof typeof TransportType]
 
 
-// This file is empty because there are no enums in the schema.
-export {}
+export const CapabilityType = {
+  tool: 'tool',
+  resource: 'resource',
+  prompt: 'prompt'
+} as const
+
+export type CapabilityType = (typeof CapabilityType)[keyof typeof CapabilityType]
+
+
+export const RiskLevel = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high'
+} as const
+
+export type RiskLevel = (typeof RiskLevel)[keyof typeof RiskLevel]
+
+
+export const RunStatus = {
+  queued: 'queued',
+  confirm_required: 'confirm_required',
+  running: 'running',
+  succeeded: 'succeeded',
+  failed: 'failed',
+  cancelled: 'cancelled'
+} as const
+
+export type RunStatus = (typeof RunStatus)[keyof typeof RunStatus]
+
+
+export const RunEventType = {
+  queued: 'queued',
+  started: 'started',
+  confirm_required: 'confirm_required',
+  completed: 'completed',
+  failed: 'failed',
+  cancelled: 'cancelled',
+  log: 'log'
+} as const
+
+export type RunEventType = (typeof RunEventType)[keyof typeof RunEventType]
+
+
+export const ShareTargetType = {
+  run: 'run',
+  recipe: 'recipe'
+} as const
+
+export type ShareTargetType = (typeof ShareTargetType)[keyof typeof ShareTargetType]
+
+
+export const AuditAction = {
+  server_created: 'server_created',
+  server_updated: 'server_updated',
+  server_deleted: 'server_deleted',
+  capability_discovered: 'capability_discovered',
+  tool_policy_updated: 'tool_policy_updated',
+  run_created: 'run_created',
+  run_rerun: 'run_rerun',
+  recipe_created: 'recipe_created',
+  recipe_updated: 'recipe_updated',
+  recipe_deleted: 'recipe_deleted',
+  share_link_created: 'share_link_created',
+  share_link_revoked: 'share_link_revoked'
+} as const
+
+export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]

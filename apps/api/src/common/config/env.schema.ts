@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+
   PORT: z.coerce.number().int().positive().default(3001),
   API_PREFIX: z.string().min(1).default('api'),
 
@@ -9,6 +10,8 @@ export const envSchema = z.object({
   LOG_PRETTY: z.coerce.boolean().default(true),
 
   DATABASE_URL: z.string().min(1),
+
+  REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(15000),
 
   HTTP_CLIENT_TIMEOUT_MS: z.coerce.number().int().positive().default(10000),
   HTTP_CLIENT_RETRY_COUNT: z.coerce.number().int().min(0).default(1),
@@ -18,6 +21,8 @@ export const envSchema = z.object({
   HEALTH_MEMORY_RSS_MB: z.coerce.number().int().positive().default(512),
   HEALTH_DISK_THRESHOLD_PERCENT: z.coerce.number().gt(0).lte(1).default(0.9),
   HEALTH_DISK_PATH: z.string().min(1).default('/'),
+
+  I18N_FALLBACK_LANGUAGE: z.string().min(1).default('zh'),
 });
 
 export type Env = z.infer<typeof envSchema>;
