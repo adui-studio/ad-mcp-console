@@ -1,0 +1,70 @@
+import { Inject, Injectable, type NestMiddleware } from '@nestjs/common';
+import type { NextFunction, Request, Response } from 'express';
+import type { Logger } from 'pino';
+import { nanoid } from 'nanoid';
+import { pinoHttp } from 'pino-http';
+import { PINO_LOGGER } from './app-logger.service.js';
+
+type RequestWithId = Request & {
+  id?: string;
+  log?: Logger;
+};
+
+@Injectable()
+export class PinoHttpMiddleware implements NestMiddleware {
+  private readonly middleware: (req: RequestWithId, res: Response, next: NextFunction) => void;
+
+  constructor(@Inject(PINO_LOGGER) private readonly logger: Logger) {
+    this.middleware = pinoHttp({
+      logger: this.logger,
+      quietReqLogger: true,
+      quietResLogger: true,
+      customAttributeKeys: {
+        req: 'httpRequest',
+        res: 'httpResponse',
+        err: 'httpError',
+        responseTime: 'durationMs',
+      },
+      genReqId: (req) => {
+        const requestWithId = req as RequestWithId;
+        return requestWithId.id ?? nanoid();
+      },
+      customProps: (req) => {
+        const requestWithId = req as RequestWithId;
+        return {
+          requestId: requestWithId.id ?? null,
+        };
+      },
+      customLogLevel: (_req, res, err) => {
+        if (err || res.statusCode >= 500) {
+          return 'error';
+        }
+        if (res.statusCode >= 400) {
+          return 'warn';
+        }
+        return 'info';
+      },
+      serializers: {
+        req(req) {
+          return {
+            id: (req as RequestWithId).id ?? null,
+            method: req.method,
+            url: req.url,
+            remoteAddress: req.socket.remoteAddress,
+            remotePort: req.socket.remotePort,
+            userAgent: req.headers['user-agent'],
+          };
+        },
+        res(res) {
+          return {
+            statusCode: res.statusCode,
+          };
+        },
+      },
+    });
+  }
+
+  use(req: RequestWithId, res: Response, next: NextFunction): void {
+    this.middleware(req, res, next);
+  }
+}
