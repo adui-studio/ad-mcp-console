@@ -1,13 +1,22 @@
 {
   "health": {
-    "ok": "Service is healthy"
+    "ok": "Service is healthy",
+    "failed": "Health check failed"
   },
   "http": {
+    "bad_request": "Invalid request parameters",
+    "not_found": "Resource not found",
+    "conflict": "Resource conflict",
     "method_not_allowed": "HTTP method \"{method}\" is not allowed",
     "request_timeout": "Request timeout after {timeoutMs}ms"
   },
   "error": {
     "internal_server_error": "Internal server error"
+  },
+  "server": {
+    "not_found": "Server not found",
+    "invalid_input": "Invalid server configuration",
+    "invalid_query": "Invalid query parameters"
   },
   "prisma": {
     "validation_error": "Invalid database operation payload",

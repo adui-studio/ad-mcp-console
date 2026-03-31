@@ -1,6 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+
 import { type Server } from '../../generated/prisma/client.js';
+import { ApiBadRequestError, ApiNotFoundError } from '../../common/swagger/swagger-responses.js';
 import { CreateServerDto } from './dto/create-server.dto.js';
 import { ListServersQueryDto } from './dto/list-servers-query.dto.js';
 import { ServerResponseDto } from './dto/server-response.dto.js';
@@ -23,6 +25,11 @@ export class ServersController {
     type: ServerResponseDto,
     isArray: true,
   })
+  @ApiBadRequestError({
+    code: 'INVALID_SERVER_QUERY',
+    messageZh: '查询参数不合法',
+    messageEn: 'Invalid query parameters',
+  })
   async list(@Query() query: ListServersQueryDto): Promise<ServerResponseDto[]> {
     const servers = await this.serversService.list(query);
     return servers.map((server) => this.toResponse(server));
@@ -42,6 +49,11 @@ export class ServersController {
     description: '获取成功 / Fetch succeeded',
     type: ServerResponseDto,
   })
+  @ApiNotFoundError({
+    code: 'SERVER_NOT_FOUND',
+    messageZh: 'Server 不存在',
+    messageEn: 'Server not found',
+  })
   async getById(@Param('id') id: string): Promise<ServerResponseDto> {
     const server = await this.serversService.getById(id);
     return this.toResponse(server);
@@ -56,6 +68,17 @@ export class ServersController {
     status: 201,
     description: '创建成功 / Created successfully',
     type: ServerResponseDto,
+  })
+  @ApiBadRequestError({
+    code: 'INVALID_SERVER_INPUT',
+    messageZh: 'Server 配置不合法',
+    messageEn: 'Invalid server configuration',
+    details: {
+      examples: [
+        'baseUrl is required when transportType is streamable_http',
+        'command is required when transportType is stdio',
+      ],
+    },
   })
   async create(@Body() dto: CreateServerDto): Promise<ServerResponseDto> {
     const server = await this.serversService.create(dto);
@@ -75,6 +98,16 @@ export class ServersController {
     status: 200,
     description: '更新成功 / Updated successfully',
     type: ServerResponseDto,
+  })
+  @ApiBadRequestError({
+    code: 'INVALID_SERVER_INPUT',
+    messageZh: 'Server 配置不合法',
+    messageEn: 'Invalid server configuration',
+  })
+  @ApiNotFoundError({
+    code: 'SERVER_NOT_FOUND',
+    messageZh: 'Server 不存在',
+    messageEn: 'Server not found',
   })
   async update(@Param('id') id: string, @Body() dto: UpdateServerDto): Promise<ServerResponseDto> {
     const server = await this.serversService.update(id, dto);
@@ -98,6 +131,11 @@ export class ServersController {
         id: 'ckxxxxxxxxxxxxxxxxxxxxxxx',
       },
     },
+  })
+  @ApiNotFoundError({
+    code: 'SERVER_NOT_FOUND',
+    messageZh: 'Server 不存在',
+    messageEn: 'Server not found',
   })
   async remove(@Param('id') id: string): Promise<{ id: string }> {
     return this.serversService.remove(id);

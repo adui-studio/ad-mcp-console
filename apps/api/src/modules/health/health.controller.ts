@@ -7,12 +7,14 @@ import {
   HealthCheckService,
   MemoryHealthIndicator,
 } from '@nestjs/terminus';
-import { ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { I18nService } from 'nestjs-i18n';
-import { PrismaHealthIndicator } from './indicators/prisma.health.js';
-import { Public } from '../../common/http/decorators/public.decorator.js';
 
-@ApiTags('health')
+import { Public } from '../../common/http/decorators/public.decorator.js';
+import { ApiServiceUnavailableError } from '../../common/swagger/swagger-responses.js';
+import { PrismaHealthIndicator } from './indicators/prisma.health.js';
+
+@ApiTags('健康检查 / health')
 @Controller('health')
 export class HealthController {
   constructor(
@@ -50,7 +52,7 @@ export class HealthController {
           storage: {
             status: 'up',
           },
-          message: '服务正常 / Service is healthy',
+          message: '服务运行正常 / Service is healthy',
         },
         error: {},
         details: {
@@ -66,36 +68,20 @@ export class HealthController {
           storage: {
             status: 'up',
           },
-          message: '服务正常 / Service is healthy',
+          message: '服务运行正常 / Service is healthy',
         },
       },
     },
   })
-  @ApiResponse({
-    status: 503,
-    description: '健康检查失败 / Health check failed',
-    schema: {
+  @ApiServiceUnavailableError({
+    code: 'HEALTH_CHECK_FAILED',
+    messageZh: '健康检查失败',
+    messageEn: 'Health check failed',
+    details: {
       example: {
-        status: 'error',
-        info: {
-          database: {
-            status: 'up',
-          },
-        },
-        error: {
-          storage: {
-            status: 'down',
-            message: 'ENOSPC: no space left on device',
-          },
-        },
-        details: {
-          database: {
-            status: 'up',
-          },
-          storage: {
-            status: 'down',
-            message: 'ENOSPC: no space left on device',
-          },
+        storage: {
+          status: 'down',
+          message: 'ENOSPC: no space left on device',
         },
       },
     },
@@ -104,10 +90,13 @@ export class HealthController {
     const heapMb = this.configService.get<number>('HEALTH_MEMORY_HEAP_MB', 256);
     const rssMb = this.configService.get<number>('HEALTH_MEMORY_RSS_MB', 512);
     const thresholdPercent = this.configService.get<number>('HEALTH_DISK_THRESHOLD_PERCENT', 0.9);
-    const diskPath = this.configService.get<string>(
-      'HEALTH_DISK_PATH',
-      process.platform === 'win32' ? 'C:\\' : '/',
-    );
+
+    const configuredDiskPath = this.configService.get<string>('HEALTH_DISK_PATH')?.trim() || '';
+
+    const diskPath =
+      process.platform === 'win32'
+        ? this.normalizeWindowsDiskPath(configuredDiskPath)
+        : configuredDiskPath || '/';
 
     const result = await this.health.check([
       () => this.prismaHealth.isHealthy('database'),
@@ -127,5 +116,17 @@ export class HealthController {
         message: this.i18n.translate('common.health.ok'),
       },
     };
+  }
+
+  private normalizeWindowsDiskPath(input: string): string {
+    if (!input || input === '/' || input === '\\') {
+      return 'C:\\';
+    }
+
+    if (/^[A-Za-z]:\\?$/.test(input)) {
+      return input.endsWith('\\') ? input : `${input}\\`;
+    }
+
+    return 'C:\\';
   }
 }

@@ -1,13 +1,22 @@
 {
   "health": {
-    "ok": "服务运行正常"
+    "ok": "服务运行正常",
+    "failed": "健康检查失败"
   },
   "http": {
+    "bad_request": "请求参数不合法",
+    "not_found": "资源不存在",
+    "conflict": "资源冲突",
     "method_not_allowed": "不支持的 HTTP 方法：{method}",
     "request_timeout": "请求超时，超过 {timeoutMs}ms"
   },
   "error": {
     "internal_server_error": "服务器内部错误"
+  },
+  "server": {
+    "not_found": "Server 不存在",
+    "invalid_input": "Server 配置不合法",
+    "invalid_query": "查询参数不合法"
   },
   "prisma": {
     "validation_error": "数据库操作参数不合法",
